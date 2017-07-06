@@ -1,7 +1,7 @@
 {
-  "name": "deploy",
+  "name": "@cms-tools/deploy",
   "version": "1.0.0",
-  "description": "Deploy tool",
+  "description": "Common DevOps and Architecture tools for the CMS.",
   "main": "./src/gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,8 +11,9 @@
     "url": "git+https://github.com/bilgeryahov/CMS-Tools.git"
   },
   "keywords": [
-    "Deploy",
-    "tool"
+    "CMS",
+    "tools",
+    "Deploy"
   ],
   "author": "Bilger Yahov",
   "license": "Bilger Yahov copyright",
