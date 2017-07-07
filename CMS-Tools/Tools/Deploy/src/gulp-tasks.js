@@ -1,6 +1,25 @@
 /**
  * @file gulp-tasks.js
  *
+ * Contains all the gulp tasks, which will be used
+ * when deploying a project, created with the CMS, built
+ * by Bilger Yahov.
+ *
+ * This file will be located in node_modules folder of the
+ * project. In order to use it, one needs to call
+ *
+ * `require(@bilgeryahov/deploy/src/gulp-tasks)(config);`
+ *
+ * This call needs to be executed from the gulpfile of the
+ * particular CMS project in which those tasks will be used.
+ *
+ * One can see that the tasks use relative paths. This is
+ * because those gulp tasks are created to serve indeed
+ * a special kind of projects, which implement the same
+ * architecture and infrastructure (Projects,
+ * which are built using the CMS, created by the author
+ * of this file).
+ *
  * @author Bilger Yahov <bayahov1@gmail.com>
  * @version 1.0.0
  * @copyright © 2017 Bilger Yahov, all rights reserved.
@@ -8,8 +27,22 @@
 
 'use strict';
 
-module.exports = function (pathToMainFolder) {
+/**
+ * Exports the gulp tasks.
+ *
+ * Needs a config object, which
+ * contains configuration information of the CMS project,
+ * which will be using the gulp tasks. The config
+ * object needs to hold important Firebase configurations.
+ *
+ * @param config
+ *
+ * @return void
+ */
 
+module.exports = function (config) {
+
+    // All the development dependencies needed.
     const gulp  = require('gulp');
     const sass  = require('gulp-sass');
     const babel = require('gulp-babel');
@@ -18,86 +51,93 @@ module.exports = function (pathToMainFolder) {
     const replace = require('gulp-replace');
     const exec = require('child_process').exec;
     const stringifyObject = require('stringify-object');
-    const inject = require('gulp-inject');
 
+    // Clean the folder for a fresh deploy.
     gulp.task('clean_content', function(){
 
-        return gulp.src(pathToMainFolder + '/Deploy/', {read : false})
+        return gulp.src('./Deploy/', {read : false})
             .pipe(clean());
     });
 
+    // Clean up the scss files after a successful deploy.
     gulp.task('clean_scss', function(){
 
-        return gulp.src(pathToMainFolder + '/Deploy/**/*.scss', {read : false})
+        return gulp.src('./Deploy/**/*.scss', {read : false})
             .pipe(clean());
     });
 
+    // Copy static files to the folder which will be publicly available.
     gulp.task('copy_content', function(){
 
         // Skip the redundant files in the CMS-Framework and CMS-Modules directories.
-        return gulp.src([pathToMainFolder + '/App/**', '!' + pathToMainFolder + '/App/{CMS-Framework,CMS-Framework/**.!(js)}',
-            '!' + pathToMainFolder + '/App/{CMS-Modules,CMS-Modules/**.!(js|html|scss)}'])
-            .pipe(gulp.dest(pathToMainFolder + '/Deploy/'));
+        return gulp.src(['./App/**', '!./App/{CMS-Framework,CMS-Framework/**.!(js)}', '!./App/{CMS-Modules,CMS-Modules/**.!(js|html|scss)}'])
+            .pipe(gulp.dest('./Deploy/'));
     });
 
+    // Compile JS ES6 to JS ES5.
     gulp.task('compile_javascript',  function(){
 
         // Make sure to take everything from the modules.
         // Make sure to take only the EcmaScript 6 files, without Vendor folder.
         const paths = [
-            pathToMainFolder + '/Deploy/CMS-Modules/CMS-Modules/Modules/**/*.js',
-            pathToMainFolder + '/Deploy/CMS-Framework/CMS-Framework/JavaScript/*.js'
+            './Deploy/CMS-Modules/CMS-Modules/Modules/**/*.js',
+            './Deploy/CMS-Framework/CMS-Framework/JavaScript/*.js'
         ];
 
-        return gulp.src(paths, {base: pathToMainFolder + '/'})
+        return gulp.src(paths, {base: './'})
             .pipe(babel())
-            .pipe(gulp.dest(pathToMainFolder + '/'));
+            .pipe(gulp.dest('./'));
     });
 
+    // Compile SCSS to CSS.
     gulp.task('compile_css', function(){
 
         // Make sure to take everything from the modules.
         // Make sure to take only the scss stylesheets, without Vendor folder.
         const paths = [
-            pathToMainFolder + '/Deploy/CMS-Modules/CMS-Modules/**/*.scss',
-            pathToMainFolder + '/Deploy/StyleSheets/*.scss'
+            './Deploy/CMS-Modules/CMS-Modules/**/*.scss',
+            './Deploy/StyleSheets/*.scss'
         ];
 
-        return gulp.src(paths, {base: pathToMainFolder + '/'})
+        return gulp.src(paths, {base: './'})
             .pipe(sass().on('error', sass.logError))
-            .pipe(gulp.dest(pathToMainFolder + '/'));
+            .pipe(gulp.dest('./'));
     });
 
+    // Set the correct keys for development environment.
     gulp.task('set_development_environment', function () {
 
-        return gulp.src(pathToMainFolder + '/Deploy/CMS-Framework/CMS-Framework/JavaScript/EnvironmentHelper.js', { base : pathToMainFolder + '/' })
-            .pipe(replace(configFileLimtek.firebase.placeholder,
+        return gulp.src('./Deploy/CMS-Framework/CMS-Framework/JavaScript/EnvironmentHelper.js', { base : './' })
+            .pipe(replace(config.firebase.placeholder,
                 stringifyObject(
-                    configFileLimtek.firebase.development,
+                    config.firebase.development,
                     {singleQuotes: true})
                 )
             )
-            .pipe(gulp.dest(pathToMainFolder + '/'));
+            .pipe(gulp.dest('./'));
     });
 
-    gulp.task('set_live_environment', function () {
+    // Set the correct keys for production environment.
+    gulp.task('set_production_environment', function () {
 
-        return gulp.src(pathToMainFolder + '/Deploy/CMS-Framework/CMS-Framework/JavaScript/EnvironmentHelper.js', { base : pathToMainFolder + '/' })
-            .pipe(replace(configFileLimtek.firebase.placeholder,
+        return gulp.src('./Deploy/CMS-Framework/CMS-Framework/JavaScript/EnvironmentHelper.js', { base : './' })
+            .pipe(replace(config.firebase.placeholder,
                 stringifyObject(
-                    configFileLimtek.firebase.live,
+                    config.firebase.production,
                     {singleQuotes: true})
                 )
             )
-            .pipe(gulp.dest(pathToMainFolder + '/'));
+            .pipe(gulp.dest('./'));
     });
 
-    gulp.task('deploy_locally', function(){
+    // Deploy development.
+    gulp.task('d_dev', function(){
 
         return runSequence('check_rights_development');
     });
 
-    gulp.task('deploy_live', function(){
+    // Deploy production.
+    gulp.task('d_production', function(){
 
         return runSequence('check_rights_production');
     });
@@ -128,7 +168,7 @@ module.exports = function (pathToMainFolder) {
 
                 console.log('You are allowed to deploy on production.');
                 return runSequence('clean_content', 'copy_content', 'compile_css', 'compile_javascript', 'clean_scss',
-                    'set_live_environment');
+                    'set_production_environment');
             }
 
             // There is no production project(s), not the correct profile.
@@ -165,10 +205,5 @@ module.exports = function (pathToMainFolder) {
             return runSequence('clean_content', 'copy_content', 'compile_css', 'compile_javascript', 'clean_scss',
                 'set_development_environment');
         });
-    });
-
-    gulp.task('construct_pages', function () {
-
-
     });
 };
