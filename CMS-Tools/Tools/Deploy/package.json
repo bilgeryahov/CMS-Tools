@@ -1,5 +1,5 @@
 {
-  "name": "deploy",
+  "name": "@bilgeryahov/deploy",
   "version": "1.0.0",
   "description": "Common DevOps and Architecture tools for the CMS.",
   "main": "./src/gulpfile.js",
