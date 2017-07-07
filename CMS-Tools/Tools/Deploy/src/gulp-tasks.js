@@ -137,7 +137,7 @@ module.exports = function (config) {
     });
 
     // Deploy production.
-    gulp.task('d_production', function(){
+    gulp.task('d_prd', function(){
 
         return runSequence('check_rights_production');
     });
