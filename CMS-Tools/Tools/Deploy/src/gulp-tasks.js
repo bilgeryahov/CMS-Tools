@@ -8,7 +8,7 @@
  * This file will be located in node_modules folder of the
  * project. In order to use it, one needs to call
  *
- * `require(@bilgeryahov/deploy/src/gulp-tasks)(config);`
+ * `require(@bilgeryahov/deploy/src/gulp-tasks)(config, pages);`
  *
  * This call needs to be executed from the gulpfile of the
  * particular CMS project in which those tasks will be used.
@@ -77,7 +77,8 @@ module.exports = function (config, pages) {
     gulp.task('copy_content', function(){
 
         // Skip the redundant files in the CMS-Framework and CMS-Modules directories.
-        return gulp.src(['./App/**', '!./App/{CMS-Framework,CMS-Framework/**.!(js)}', '!./App/{CMS-Modules,CMS-Modules/**.!(js|html|scss)}'])
+        // Do not copy the HTML module files. See 'construct_pages' task.
+        return gulp.src(['./App/**', '!./App/{CMS-Framework,CMS-Framework/**.!(js)}', '!./App/{CMS-Modules,CMS-Modules/**.!(js|scss)}'])
             .pipe(gulp.dest('./Deploy/'));
     });
 
@@ -244,7 +245,7 @@ module.exports = function (config, pages) {
             }
 
             stream
-                .pipe(gulp.dest('./'));
+                .pipe(gulp.dest('./Deploy/'));
         }
     });
 };
