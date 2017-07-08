@@ -81,7 +81,7 @@ module.exports = function (config, pages) {
     // Clean up all files, different from JS, HTML, CSS. (After deploy)
     gulp.task('clean_up', function () {
 
-       return gulp.src(['./Deploy/**', '!./Deploy/**/*.js', '!./Deploy/**/*.css', '!./Deploy/**/*.html'], {read : false, base:'*'})
+       return gulp.src(['./Deploy/**/*.!{html,css,js}'], {read : false})
            .pipe(clean());
     });
 
