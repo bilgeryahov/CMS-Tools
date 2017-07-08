@@ -77,8 +77,7 @@ module.exports = function (config, pages) {
     gulp.task('copy_content', function(){
 
         // Skip the redundant files in the CMS-Framework and CMS-Modules directories.
-        // Do not copy the HTML module files. See 'construct_pages' task.
-        return gulp.src(['./App/**', '!./App/{CMS-Framework,CMS-Framework/**.!(js)}', '!./App/{CMS-Modules,CMS-Modules/**.!(js|scss)}'])
+        return gulp.src(['./App/**', '!./App/{CMS-Framework,CMS-Framework/**.!(js)}', '!./App/{CMS-Modules,CMS-Modules/**.!(js|html|scss)}'])
             .pipe(gulp.dest('./Deploy/'));
     });
 
@@ -245,7 +244,7 @@ module.exports = function (config, pages) {
             }
 
             stream
-                .pipe(gulp.dest('./Deploy/'));
+                .pipe(gulp.dest('./'));
         }
     });
 };
