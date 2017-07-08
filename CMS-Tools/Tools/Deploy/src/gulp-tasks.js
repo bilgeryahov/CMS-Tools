@@ -13,13 +13,6 @@
  * This call needs to be executed from the gulpfile of the
  * particular CMS project in which those tasks will be used.
  *
- * One can see that the tasks use relative paths. This is
- * because those gulp tasks are created to serve indeed
- * a special kind of projects, which implement the same
- * architecture and infrastructure (Projects,
- * which are built using the CMS, created by the author
- * of this file).
- *
  * @author Bilger Yahov <bayahov1@gmail.com>
  * @version 1.0.0
  * @copyright © 2017 Bilger Yahov, all rights reserved.
@@ -30,6 +23,13 @@
 /**
  * Exports the gulp tasks.
  *
+ * One can see that the tasks use relative paths. This is
+ * because those gulp tasks are created to serve indeed
+ * a special kind of projects, which implement the same
+ * architecture and infrastructure (Projects,
+ * which are built using the CMS, created by the author
+ * of this file).
+ *
  * Needs a config object, which
  * contains configuration information of the CMS project,
  * which will be using the gulp tasks. The config
@@ -39,6 +39,11 @@
  * all the pages and their modules. Those
  * are used for constructing the pages on
  * deploy.
+ *
+ * Note that the current deploy procedure simply
+ * copies all the content of App directory into
+ * Deploy directory and then does the processing
+ * on the files, located inside Deploy folder.
  *
  * @param config
  * @param pages
@@ -66,19 +71,18 @@ module.exports = function (config, pages) {
             .pipe(clean());
     });
 
-    // Clean up the scss files after a successful deploy.
-    gulp.task('clean_scss', function(){
-
-        return gulp.src('./Deploy/**/*.scss', {read : false})
-            .pipe(clean());
-    });
-
     // Copy static files to the folder which will be publicly available.
     gulp.task('copy_content', function(){
 
-        // Skip the redundant files in the CMS-Framework and CMS-Modules directories.
-        return gulp.src(['./App/**', '!./App/{CMS-Framework,CMS-Framework/**.!(js)}', '!./App/{CMS-Modules,CMS-Modules/**.!(js|html|scss)}'])
+        return gulp.src(['./App/**'])
             .pipe(gulp.dest('./Deploy/'));
+    });
+
+    // Clean up all files, different from JS, HTML, CSS. (After deploy)
+    gulp.task('clean_up', function () {
+
+       return gulp.src('./Deploy/**.!(js|html|css)}', {read : false})
+           .pipe(clean());
     });
 
     // Compile JS ES6 to JS ES5.
@@ -174,8 +178,8 @@ module.exports = function (config, pages) {
             if(stdout.includes('Production-Project')){
 
                 console.log('You are allowed to deploy on production.');
-                return runSequence('clean_content', 'copy_content', 'construct_pages', 'compile_css', 'compile_javascript', 'clean_scss',
-                    'set_production_environment');
+                return runSequence('clean_content', 'copy_content', 'construct_pages', 'compile_css', 'compile_javascript',
+                    'set_production_environment', 'clean_up');
             }
 
             // There is no production project(s), not the correct profile.
@@ -209,8 +213,8 @@ module.exports = function (config, pages) {
             }
 
             console.log('You are allowed to deploy on development.');
-            return runSequence('clean_content', 'copy_content', 'construct_pages', 'compile_css', 'compile_javascript', 'clean_scss',
-                'set_development_environment');
+            return runSequence('clean_content', 'copy_content', 'construct_pages', 'compile_css', 'compile_javascript',
+                'set_development_environment', 'clean_up');
         });
     });
 
@@ -224,11 +228,12 @@ module.exports = function (config, pages) {
                 continue;
             }
 
-            let stream = gulp.src(page);
+            let fullPagePath = './Deploy/' + page;
+            let stream = gulp.src(fullPagePath);
 
             for(let moduleCount = 0 ; moduleCount < pages[page].length ; moduleCount++){
 
-                let module = pages[page][moduleCount].toString();
+                let module = './Deploy/' + pages[page][moduleCount].toString();
                 let moduleName = module.replace('.html','');
                 let lastIndexOfSlash = moduleName.lastIndexOf('/');
                 moduleName = moduleName.substring(lastIndexOfSlash+1, moduleName.length);
