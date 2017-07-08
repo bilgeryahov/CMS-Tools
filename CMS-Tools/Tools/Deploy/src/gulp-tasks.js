@@ -244,7 +244,7 @@ module.exports = function (config, pages) {
             }
 
             stream
-                .pipe(gulp.dest('./'));
+                .pipe(gulp.dest('./Deploy/'));
         }
     });
 };
