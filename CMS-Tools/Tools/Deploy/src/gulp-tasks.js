@@ -35,12 +35,18 @@
  * which will be using the gulp tasks. The config
  * object needs to hold important Firebase configurations.
  *
+ * Needs a pages object, which will hold
+ * all the pages and their modules. Those
+ * are used for constructing the pages on
+ * deploy.
+ *
  * @param config
+ * @param pages
  *
  * @return void
  */
 
-module.exports = function (config) {
+module.exports = function (config, pages) {
 
     // All the development dependencies needed.
     const gulp  = require('gulp');
@@ -51,6 +57,7 @@ module.exports = function (config) {
     const replace = require('gulp-replace');
     const exec = require('child_process').exec;
     const stringifyObject = require('stringify-object');
+    const inject = require('gulp-inject');
 
     // Clean the folder for a fresh deploy.
     gulp.task('clean_content', function(){
@@ -167,7 +174,7 @@ module.exports = function (config) {
             if(stdout.includes('Production-Project')){
 
                 console.log('You are allowed to deploy on production.');
-                return runSequence('clean_content', 'copy_content', 'compile_css', 'compile_javascript', 'clean_scss',
+                return runSequence('clean_content', 'copy_content', 'construct_pages', 'compile_css', 'compile_javascript', 'clean_scss',
                     'set_production_environment');
             }
 
@@ -202,8 +209,42 @@ module.exports = function (config) {
             }
 
             console.log('You are allowed to deploy on development.');
-            return runSequence('clean_content', 'copy_content', 'compile_css', 'compile_javascript', 'clean_scss',
+            return runSequence('clean_content', 'copy_content', 'construct_pages', 'compile_css', 'compile_javascript', 'clean_scss',
                 'set_development_environment');
         });
+    });
+
+    // Constructs the pages with all their modules.
+    gulp.task('construct_pages', function () {
+
+        for(let page in pages){
+
+            if(!pages.hasOwnProperty(page)){
+
+                continue;
+            }
+
+            let stream = gulp.src(page);
+
+            for(let moduleCount = 0 ; moduleCount < pages[page].length ; moduleCount++){
+
+                let module = pages[page][moduleCount].toString();
+                let moduleName = module.replace('.html','');
+                let lastIndexOfSlash = moduleName.lastIndexOf('/');
+                moduleName = moduleName.substring(lastIndexOfSlash+1, moduleName.length);
+
+                stream = stream
+                    .pipe(inject(gulp.src(module), {
+                        starttag: `<!-- inject:${moduleName}:{{ext}} -->`,
+                        transform: function (filePath, file) {
+                            // return file contents as string
+                            return file.contents.toString('utf8')
+                        }
+                    }));
+            }
+
+            stream
+                .pipe(gulp.dest('./'));
+        }
     });
 };
