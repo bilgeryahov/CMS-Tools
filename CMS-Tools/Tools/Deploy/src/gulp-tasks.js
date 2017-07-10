@@ -228,19 +228,31 @@ module.exports = function (config, pages) {
                 continue;
             }
 
-            let fullPagePath = './Deploy/' + page;
+            // The page name comes as 'index'
+            let fullPagePath = './Deploy/' + page + '.html';
             let stream = gulp.src(fullPagePath);
 
             for(let moduleCount = 0 ; moduleCount < pages[page].length ; moduleCount++){
 
-                let module = './Deploy/' + pages[page][moduleCount].toString();
-                let moduleName = module.replace('.html','');
-                let lastIndexOfSlash = moduleName.lastIndexOf('/');
-                moduleName = moduleName.substring(lastIndexOfSlash+1, moduleName.length);
+                // The simple module name comes as 'navigation_bar'
+                let simpleModuleName = pages[page][moduleCount].toString();
+                let simpleModuleNameArray = simpleModuleName.split('_');
+                let simpleModuleNameSpaces = '';
+                simpleModuleNameArray.forEach(function (element) {
+                    simpleModuleNameSpaces += element + ' ';
+                });
+                // Remove the last space.
+                simpleModuleNameSpaces = simpleModuleNameSpaces.substring(0, simpleModuleNameSpaces.length-1);
+                // Capitalize.
+                let simpleModuleNameCapitals = toTitleCase(simpleModuleNameSpaces);
+                // Remove all the spaces.
+                simpleModuleNameCapitals = simpleModuleNameCapitals.replace(/ /g,'');
+                // Construct the path to the module.
+                let module = './Deploy/CMS-Modules/CMS-Modules/Modules/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
 
                 stream = stream
                     .pipe(inject(gulp.src(module), {
-                        starttag: `<!-- inject:${moduleName}:{{ext}} -->`,
+                        starttag: `<!-- inject:${simpleModuleName}:{{ext}} -->`,
                         transform: function (filePath, file) {
                             // return file contents as string
                             return file.contents.toString('utf8')
@@ -252,4 +264,14 @@ module.exports = function (config, pages) {
                 .pipe(gulp.dest('./Deploy/'));
         }
     });
+
+    function toTitleCase(str){
+
+        return str.replace(/\w\S*/g,
+            function(txt){
+
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            }
+        );
+    }
 };
