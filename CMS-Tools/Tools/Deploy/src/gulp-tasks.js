@@ -63,6 +63,7 @@ module.exports = function (config, pages) {
     const exec = require('child_process').exec;
     const stringifyObject = require('stringify-object');
     const inject = require('gulp-inject');
+    const fs = require('fs');
 
     // Clean the folder for a fresh deploy.
     gulp.task('clean_content', function(){
@@ -104,10 +105,10 @@ module.exports = function (config, pages) {
     gulp.task('compile_css', function(){
 
         // Make sure to take everything from the modules.
-        // Make sure to take only the scss stylesheets, without Vendor folder.
+        // Make sure to take only the scss stylesheets.
         const paths = [
             './Deploy/CMS-Modules/CMS-Modules/**/*.scss',
-            './Deploy/StyleSheets/*.scss'
+            './Deploy/StyleSheets/**/.scss'
         ];
 
         return gulp.src(paths, {base: './'})
@@ -247,17 +248,65 @@ module.exports = function (config, pages) {
                 let simpleModuleNameCapitals = toTitleCase(simpleModuleNameSpaces);
                 // Remove all the spaces.
                 simpleModuleNameCapitals = simpleModuleNameCapitals.replace(/ /g,'');
-                // Construct the path to the module.
-                let module = './Deploy/CMS-Modules/CMS-Modules/Modules/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
 
-                stream = stream
-                    .pipe(inject(gulp.src(module), {
-                        starttag: `<!-- inject:${simpleModuleName}:{{ext}} -->`,
-                        transform: function (filePath, file) {
-                            // return file contents as string
-                            return file.contents.toString('utf8')
-                        }
-                    }));
+                // Construct the path to the module.
+                let backAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/BackApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
+	            let frontAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/FrontApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
+	            let sharedAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/SharedApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
+
+	            const finalizeModuleConstruction = function (finalizedModulePath) {
+
+		            stream = stream
+			            .pipe(inject(gulp.src(finalizedModulePath), {
+				            starttag: `<!-- inject:${simpleModuleName}:{{ext}} -->`,
+				            transform: function (filePath, file) {
+					            // return file contents as string
+					            return file.contents.toString('utf8')
+				            }
+			            }));
+	            };
+
+	            const checkSharedAppModule = function () {
+
+		            fs.access(sharedAppModule, function (error) {
+
+			            if(error) {
+
+				            return;
+			            }
+
+			            return finalizeModuleConstruction(sharedAppModule);
+		            });
+	            };
+
+	            const checkFrontAppModule = function () {
+
+		            fs.access(frontAppModule, function (error) {
+
+			            if(error) {
+
+				            return checkSharedAppModule();
+			            }
+
+			            return finalizeModuleConstruction(frontAppModule);
+		            });
+	            };
+
+	            const checkBackAppModule = function () {
+
+		            fs.access(backAppModule, function (error) {
+
+			            if(error) {
+
+				            return checkFrontAppModule();
+			            }
+
+			            return finalizeModuleConstruction(backAppModule);
+		            });
+	            };
+
+	            // Check what kind of module we are dealing with
+                checkBackAppModule();
             }
 
             stream
