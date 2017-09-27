@@ -14,7 +14,7 @@
  * particular CMS project in which those tasks will be used.
  *
  * @author Bilger Yahov <bayahov1@gmail.com>
- * @version 1.0.0
+ * @version 3.0.0
  * @copyright © 2017 Bilger Yahov, all rights reserved.
  */
 
@@ -54,16 +54,16 @@
 module.exports = function (config, pages) {
 
     // All the development dependencies needed.
-    const gulp  = require('gulp');
-    const sass  = require('gulp-sass');
-    const babel = require('gulp-babel');
-    const runSequence = require('run-sequence');
-    const clean  = require('gulp-clean');
-    const replace = require('gulp-replace');
-    const exec = require('child_process').exec;
-    const stringifyObject = require('stringify-object');
-    const inject = require('gulp-inject');
-    const fs = require('fs');
+    const gulp              = require('gulp');
+    const sass              = require('gulp-sass');
+    const babel             = require('gulp-babel');
+    const runSequence       = require('run-sequence');
+    const clean             = require('gulp-clean');
+    const replace           = require('gulp-replace');
+    const exec              = require('child_process').exec;
+    const stringifyObject   = require('stringify-object');
+    const inject            = require('gulp-inject');
+    const fs                = require('fs');
 
     // Clean the folder for a fresh deploy.
     gulp.task('clean_content', function(){
@@ -237,90 +237,19 @@ module.exports = function (config, pages) {
 
                 // The simple module name comes as 'navigation_bar'
                 let simpleModuleName = pages[page][moduleCount].toString();
-                let simpleModuleNameArray = simpleModuleName.split('_');
-                let simpleModuleNameSpaces = '';
-                simpleModuleNameArray.forEach(function (element) {
-                    simpleModuleNameSpaces += element + ' ';
-                });
-                // Remove the last space.
-                simpleModuleNameSpaces = simpleModuleNameSpaces.substring(0, simpleModuleNameSpaces.length-1);
-                // Capitalize.
-                let simpleModuleNameCapitals = toTitleCase(simpleModuleNameSpaces);
-                // Remove all the spaces.
-                simpleModuleNameCapitals = simpleModuleNameCapitals.replace(/ /g,'');
 
-                // Construct the path to the module.
-                let backAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/BackApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
-	            let frontAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/FrontApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
-	            let sharedModule = './Deploy/CMS-Modules/CMS-Modules/Modules/Shared/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
-
-	            const finalizeModuleConstruction = function (finalizedModulePath) {
-
-		            stream = stream
-			            .pipe(inject(gulp.src(finalizedModulePath), {
-				            starttag: `<!-- inject:${simpleModuleName}:{{ext}} -->`,
-				            transform: function (filePath, file) {
-					            // return file contents as string
-					            return file.contents.toString('utf8')
-				            }
-			            }));
-	            };
-
-	            const checkSharedModule = function () {
-
-		            fs.access(sharedModule, function (error) {
-
-			            if(error) {
-
-				            return;
+	            stream = stream
+		            .pipe(inject(gulp.src(`./Deploy/CMS-Modules/CMS-Modules/Modules/**/${simpleModuleName}.html`), {
+			            starttag: `<!-- inject:${simpleModuleName}:{{ext}} -->`,
+			            transform: function (filePath, file) {
+				            // return file contents as string
+				            return file.contents.toString('utf8')
 			            }
-
-			            return finalizeModuleConstruction(sharedModule);
-		            });
-	            };
-
-	            const checkFrontAppModule = function () {
-
-		            fs.access(frontAppModule, function (error) {
-
-			            if(error) {
-
-				            return checkSharedModule();
-			            }
-
-			            return finalizeModuleConstruction(frontAppModule);
-		            });
-	            };
-
-	            const checkBackAppModule = function () {
-
-		            fs.access(backAppModule, function (error) {
-
-			            if(error) {
-
-				            return checkFrontAppModule();
-			            }
-
-			            return finalizeModuleConstruction(backAppModule);
-		            });
-	            };
-
-	            // Check what kind of module we are dealing with
-                checkBackAppModule();
+		            }));
             }
 
-            stream
-                .pipe(gulp.dest('./Deploy/'));
+	        stream
+		        .pipe(gulp.dest('./Deploy/'));
         }
     });
-
-    function toTitleCase(str){
-
-        return str.replace(/\w\S*/g,
-            function(txt){
-
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            }
-        );
-    }
 };
