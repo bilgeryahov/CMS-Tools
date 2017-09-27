@@ -1,6 +1,6 @@
 {
   "name": "@bilgeryahov/deploy",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "Common DevOps and Architecture tools for the CMS.",
   "main": "./src/gulp-tasks.js",
   "scripts": {

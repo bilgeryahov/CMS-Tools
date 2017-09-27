@@ -108,7 +108,7 @@ module.exports = function (config, pages) {
         // Make sure to take only the scss stylesheets.
         const paths = [
             './Deploy/CMS-Modules/CMS-Modules/**/*.scss',
-            './Deploy/StyleSheets/**/.scss'
+            './Deploy/StyleSheets/**/*.scss'
         ];
 
         return gulp.src(paths, {base: './'})
@@ -252,7 +252,7 @@ module.exports = function (config, pages) {
                 // Construct the path to the module.
                 let backAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/BackApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
 	            let frontAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/FrontApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
-	            let sharedAppModule = './Deploy/CMS-Modules/CMS-Modules/Modules/SharedApp/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
+	            let sharedModule = './Deploy/CMS-Modules/CMS-Modules/Modules/Shared/' + simpleModuleNameCapitals +'/' + simpleModuleName + '.html';
 
 	            const finalizeModuleConstruction = function (finalizedModulePath) {
 
@@ -266,16 +266,16 @@ module.exports = function (config, pages) {
 			            }));
 	            };
 
-	            const checkSharedAppModule = function () {
+	            const checkSharedModule = function () {
 
-		            fs.access(sharedAppModule, function (error) {
+		            fs.access(sharedModule, function (error) {
 
 			            if(error) {
 
 				            return;
 			            }
 
-			            return finalizeModuleConstruction(sharedAppModule);
+			            return finalizeModuleConstruction(sharedModule);
 		            });
 	            };
 
@@ -285,7 +285,7 @@ module.exports = function (config, pages) {
 
 			            if(error) {
 
-				            return checkSharedAppModule();
+				            return checkSharedModule();
 			            }
 
 			            return finalizeModuleConstruction(frontAppModule);
