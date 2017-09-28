@@ -107,7 +107,7 @@ module.exports = function (config, pages) {
         // Make sure to take everything from the modules.
         // Make sure to take only the scss stylesheets.
         const paths = [
-            './Deploy/CMS-Modules/CMS-Modules/**/*.scss',
+            './Deploy/CMS-Modules/CMS-Modules/Modules/**/*.scss',
             './Deploy/StyleSheets/**/*.scss'
         ];
 
